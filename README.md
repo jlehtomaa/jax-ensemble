@@ -19,7 +19,9 @@ also because they can easily be evaluated in an *optimistic* manner using a soft
 member's predictions. For instance in reinforcement learning, this can be exploited to guide exploration towards
 high-uncertainty areas, to boost the information gain of the future control sequences.
 
-![plot](./experimets/results/ens.png)
+![plot](./experiments/results/ens.png)
+
+The shaded blue regions correspond to the $\pm$ 1 and $\pm$ 2 standard deviation limits of the ensemble member outputs.
 
 ## Running the code
 
