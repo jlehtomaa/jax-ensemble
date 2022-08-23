@@ -1,20 +1,20 @@
-experiment_seed: 0
+experiment_seed: 42
 
 mlp:
   input_dim: 1
-  features: [16, 16, 1]
+  features: [16, 16, 16, 1]
   learning_rate: 0.001
   weight_decay: 0.00001
-  prior_beta: 2.
+  prior_beta: 1.
 
 ensemble:
-  num_models: 10
+  num_models: 8
   temperature: 10
 
 train:
-  num_steps: 1000
-  num_train_data: 100
-  num_eval_data: 100
+  num_steps: 3000
+  num_train_data: 250
+  num_eval_data: 250
   batch_size: 64
 
 paths:

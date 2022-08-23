@@ -7,7 +7,6 @@ import flax.linen as nn
 from flax.training import train_state
 
 
-
 class MLP(nn.Module):
     """Standard multilayer perceptron."""
     features: Sequence[int]

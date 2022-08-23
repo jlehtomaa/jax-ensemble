@@ -1,8 +1,9 @@
 import hydra
 import jax
+import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from jax_ensemble.mlp import create_train_state, train_step_fn, pred_fn
-from jax_ensemble.utils import create_1d_dataset, set_fig_layout
+from jax_ensemble.utils import create_dataset, set_fig_layout
 
 
 @hydra.main(version_base=None, config_path="../../conf", config_name="config")
@@ -13,14 +14,11 @@ def main(cfg):
     # -------------------------
     key = jax.random.PRNGKey(cfg["experiment_seed"])
 
-    # This toy experiments requires exactly three random keys: one for
-    # generating the training dataset, one for creating the evaluation dataset,
-    # and one for initializing the neural network.
-    keys = iter(jax.random.split(key, 3))
-    x_train, y_train = create_1d_dataset(
-        next(keys), size=cfg["train"]["num_train_data"])
+    key, subkey = jax.random.split(key)
+    x_train, y_train = create_dataset(subkey, size=cfg["train"]["num_train_data"])
 
-    state = create_train_state(next(keys), cfg["mlp"])
+    key, subkey = jax.random.split(key)
+    state = create_train_state(subkey, cfg["mlp"])
     batch = {"inputs": x_train, "labels": y_train}
 
     # TRAINING LOOP
@@ -33,8 +31,7 @@ def main(cfg):
 
     # EVALUATION
     # ----------
-    x_eval, _ = create_1d_dataset(
-        next(keys), minval=-5, maxval=5, size=cfg["train"]["num_eval_data"], sort=True)
+    x_eval = jnp.linspace(-0.5, 1.0, cfg["train"]["num_eval_data"]).reshape((-1, 1))
     preds = pred_fn(state, x_eval)
 
     set_fig_layout(cfg["plots"])

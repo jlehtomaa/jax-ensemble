@@ -1,8 +1,9 @@
 import hydra
 import jax
+import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from jax_ensemble.ensemble import Ensemble
-from jax_ensemble.utils import (create_1d_dataset,
+from jax_ensemble.utils import (create_dataset,
                                 draw_ensemble_batch,
                                 set_fig_layout)
 
@@ -18,12 +19,11 @@ def main(cfg):
     ens = Ensemble(subkey, cfg["mlp"], cfg["ensemble"])
 
     key, subkey = jax.random.split(key)
-    x_train, y_train = create_1d_dataset(
+    x_train, y_train = create_dataset(
         subkey, size=cfg["train"]["num_train_data"])
 
     key, subkey = jax.random.split(key)
-    x_eval, _ = create_1d_dataset(
-        subkey, minval=-5, maxval=5, size=cfg["train"]["num_eval_data"], sort=True)
+    x_eval = jnp.linspace(-0.5, 1.0, cfg["train"]["num_eval_data"]).reshape((-1, 1))
 
 
     # TRAINING LOOP
@@ -36,7 +36,7 @@ def main(cfg):
         mean_loss = ens.train(batch)
 
         if step % 100 == 0:
-           print(f"Step: {step}, mean loss: {mean_loss:.5f}")
+            print(f"Step: {step}, mean loss: {mean_loss:.5f}")
 
     # EVALUATION
     # ----------
