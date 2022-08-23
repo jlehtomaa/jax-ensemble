@@ -1,0 +1,24 @@
+experiment_seed: 0
+
+mlp:
+  input_dim: 1
+  features: [16, 16, 1]
+  learning_rate: 0.001
+  weight_decay: 0.00001
+  prior_beta: 2.
+
+ensemble:
+  num_models: 10
+  temperature: 10
+
+train:
+  num_steps: 1000
+  num_train_data: 100
+  num_eval_data: 100
+  batch_size: 64
+
+paths:
+  results: ./experiments/results/
+
+defaults:
+  - plots: styles  

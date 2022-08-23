@@ -1,0 +1,21 @@
+palette: colorblind
+
+seaborn:
+  style: dark
+  rc:
+    ytick.left: True
+    xtick.bottom: True
+    axes.edgecolor: black
+
+matplotlib:
+  font.family: serif
+  text.usetex: True
+  font.size: 22
+  figure.titlesize: 22
+  figure.figsize: [8.0, 5.0]
+  axes.titlesize: 20
+  axes.labelsize: 20
+  xtick.labelsize: 18
+  ytick.labelsize: 18
+  legend.fontsize: 18
+  legend.title_fontsize: 18
