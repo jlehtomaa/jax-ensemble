@@ -6,6 +6,8 @@ import optax
 import flax.linen as nn
 from flax.training import train_state
 
+class TrainState(train_state.TrainState):
+    priors: Dict = None
 
 class MLP(nn.Module):
     """Standard multilayer perceptron."""
@@ -45,9 +47,6 @@ class PriorModel(nn.Module):
         x_train = self.train_net(x)
         return self.beta * x_prior + x_train
 
-class TrainState(train_state.TrainState):
-   priors: Dict = None
-
 def create_train_state(key, cfg):
 
     model = PriorModel(cfg)
@@ -55,12 +54,12 @@ def create_train_state(key, cfg):
     dummy_input = jnp.ones((1, cfg.input_dim))
 
     params = model.init(key, dummy_input)["params"]
-    tx = optax.adamw(cfg.learning_rate, weight_decay=cfg.weight_decay)
+    optimizer = optax.adamw(cfg.learning_rate, weight_decay=cfg.weight_decay)
 
     return TrainState.create(apply_fn=model.apply,
                              params=params["train_net"],
                              priors=params["prior_net"],
-                             tx=tx)
+                             tx=optimizer)
 
 @jax.jit
 def pred_fn(state, x):

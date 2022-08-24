@@ -22,7 +22,6 @@ def main(cfg):
     x_train, y_train = create_dataset(
         subkey, size=cfg["train"]["num_train_data"])
 
-    key, subkey = jax.random.split(key)
     x_eval = jnp.linspace(-0.5, 1.0, cfg["train"]["num_eval_data"]).reshape((-1, 1))
 
 
