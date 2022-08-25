@@ -31,7 +31,6 @@ vec_pred_single_in_fn = jax.vmap(pred_fn, in_axes=(0, None))
 # call both over the training states and input batches.
 bootstrap_train_step_fn = jax.vmap(train_step_fn, in_axes=(0, 0))
 
-@jax.jit
 def ensemble_pred(states, feat, temp):
     """Evaluate an ensemble network model as a whole.
 
@@ -70,7 +69,7 @@ def ensemble_pred(states, feat, temp):
     return (1 / temp) * lse
 
 # Vectorize the ensemble_pred function to take in a batch of input vectors.
-vec_ensemble_pred = jax.vmap(ensemble_pred, in_axes=(None, 0, None))
+vec_ensemble_pred = jax.jit(jax.vmap(ensemble_pred, in_axes=(None, 0, None)))
 
 class Ensemble:
     """Ensemble neural network model.

@@ -7,6 +7,7 @@ from jax_ensemble.utils import (create_dataset,
                                 draw_ensemble_batch,
                                 set_fig_layout)
 
+
 @hydra.main(version_base=None, config_path="../../conf", config_name="config")
 def main(cfg):
     """Train a neural network ensemble on a toy dataset."""
@@ -55,7 +56,8 @@ def main(cfg):
     plt.plot(x_train, y_train, 'kx', label="Training data")
     plt.plot(x_eval, ens_pred, lw=3, color="black", label="Optimistic (softmax)")
     plt.plot(x_eval, ens_mean, color="tab:red", lw=2, label="Ensemble mean")
-    plt.fill_between(x_eval.squeeze(), lb_2std, ub_2std, color="tab:blue", alpha=0.3)
+    plt.fill_between(x_eval.squeeze(), lb_2std, ub_2std, color="tab:blue",
+                     alpha=0.3, label=r"$\pm2\sigma$ bounds")
     plt.fill_between(x_eval.squeeze(), lb_1std, ub_1std, color="tab:blue", alpha=0.7)
     plt.title("Ensemble training")
     plt.legend()

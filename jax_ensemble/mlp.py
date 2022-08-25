@@ -11,12 +11,13 @@ class TrainState(train_state.TrainState):
 
 class MLP(nn.Module):
     """Standard multilayer perceptron."""
-    features: Sequence[int]
+    features: Sequence[int] # Last element must match the output dimension.
     activation: Callable = nn.tanh
     kernel_init: Callable = nn.initializers.glorot_normal()
 
     @nn.compact
-    def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
+    def __call__(self, x):
+        """Forward pass of the MLP."""
 
         dense = partial(nn.Dense, kernel_init=self.kernel_init)
 
@@ -31,8 +32,16 @@ class MLP(nn.Module):
 
 
 class PriorModel(nn.Module):
-    """
-    A network with randomized prior functions as in
+    """A network with randomized prior functions.
+
+    Parameters
+    ----------
+    cfg : dict
+        Configuration file with the network layer architecture and prior
+        network weight.
+
+    Notes
+    -----
     Osband et al. 2018: Randomized Prior Functions for Deep Reinforcement Learning.
     """
     cfg: Dict
@@ -42,12 +51,27 @@ class PriorModel(nn.Module):
         self.train_net = MLP(self.cfg.features)
         self.beta = self.cfg.prior_beta
 
-    def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
-        x_prior = self.prior_net(x)
-        x_train = self.train_net(x)
-        return self.beta * x_prior + x_train
+    def __call__(self, x):
+        """Forward pass of the PriorModel."""
+        out_prior = self.prior_net(x)
+        out_train = self.train_net(x)
+        return self.beta * out_prior + out_train
 
 def create_train_state(key, cfg):
+    """Initializes the PriorModel training state.
+
+    Parameters
+    ----------
+    key : jax.random.PRNGKey
+        Random key for weight initialization.
+    cfg : dict
+        An MLP configuration file.
+
+    Returns
+    -------
+    TrainState
+        A Flax training state.
+    """
 
     model = PriorModel(cfg)
 
@@ -61,14 +85,42 @@ def create_train_state(key, cfg):
                              priors=params["prior_net"],
                              tx=optimizer)
 
-@jax.jit
-def pred_fn(state, x):
-    params = {"train_net": state.params, "prior_net": state.priors}
-    return state.apply_fn({"params": params}, x)
+def pred_fn(state, feat):
+    """Run inference with the PriorModel.
 
-@jax.jit
+    Parameters
+    ----------
+    state : TrainState
+        Flax model representation.
+    feat : float array-like
+        Model input feature.
+
+    Returns
+    -------
+    float array-like, shape=(output_dim,)
+        Model prediction.
+    """
+    params = {"train_net": state.params, "prior_net": state.priors}
+    return state.apply_fn({"params": params}, feat)
+
+
 def apply_model(state, batch):
-    """Train for a single step."""
+    """Train for a single gradient step.
+
+    Parameters
+    ----------
+    state : TrainState
+        Flax model representation.
+    batch : dict
+        Training batch with keys 'inputs' and 'labels'.
+
+    Returns
+    -------
+    grads : float array-like
+        Loss function gradients w.r.t. model weights.
+    loss : float
+        Model mean squared error value.
+    """
 
     def loss_fn(params):
         """MSE loss function."""
@@ -84,6 +136,22 @@ def apply_model(state, batch):
 
 @jax.jit
 def train_step_fn(state, batch):
+    """Take one training step by applying the model and updating the weights.
+
+    Parameters
+    ----------
+    state : TrainState
+        Flax model representation.
+    batch : dict
+        Training batch with keys 'inputs' and 'labels'.
+
+    Returns
+    -------
+    state : TrainState
+        Updated model.
+    loss : float
+        Model mean squared error value.
+    """
 
     grads, loss = apply_model(state, batch)
     state = state.apply_gradients(grads=grads)
